@@ -2,29 +2,39 @@ package service
 
 import (
 	"boards.io/domain"
-	"boards.io/repository"
 	"boards.io/transport/request"
 )
 
-
-
 type UsersService struct {
-	Repository repository.UsersRepository
+	Repository domain.UsersRepository
 }
 
-func (s *UsersService) Create(userDto request.NewUserReq) (string, error) {
+func NewUsersService(usersRepository domain.UsersRepository) *UsersService {
+	return &UsersService{
+		Repository: usersRepository,
+	}
+}
 
-	user, error := domain.CreateUser(userDto.Name, userDto.Username, userDto.Email,userDto.Password)
+func (service *UsersService) Create(userReq request.NewUserReq) (string, error) {
+
+	user := &domain.User{
+		Name:     userReq.Name,
+		Email:    userReq.Email,
+		Username: userReq.Username,
+		Password: userReq.Password,
+	}
+
+	error := user.Validate()
 
 	if error != nil {
 		return "", error
 	}
 
-	error = s.Repository.Save(user)
+	ID, error := service.Repository.Create(user)
 
 	if error != nil {
 		return "", domain.ErrInternal
 	}
 
-	return user.ID, nil
-} 
+	return ID, nil
+}

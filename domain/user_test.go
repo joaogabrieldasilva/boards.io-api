@@ -1,72 +1,72 @@
 package domain_test
 
 import (
-	"fmt"
 	"testing"
 
 	"boards.io/domain"
 	"github.com/go-faker/faker/v4"
+	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
 )
 
-
-func makeUserMock() (name, username, email, password string) {
-	name = faker.Name()
-	username = faker.Username()
-	email = "joao@gmail.com"
-	password = faker.Password()
-
-	fmt.Println(email)
-
-	return
+func makeUserMock() domain.User {
+	return domain.User{
+		ID:       xid.New().String(),
+		Name:     faker.Name(),
+		Username: faker.Username(),
+		Email:    "joao@gmail.com",
+		Password: faker.Password(),
+	}
 }
 
-func Test_User_CreateUser(t *testing.T) {
+func Test_User_Validate(t *testing.T) {
 	assert := assert.New(t)
-	
-	name, username, email, password := makeUserMock()
 
-	user, error := domain.CreateUser(name,username, email, password)
+	user := makeUserMock()
 
-	assert.Equal(error, nil)
-	assert.NotNil(user.ID)
-	assert.Equal(user.Name, name)
-	assert.Equal(user.Username, username)
-	assert.Equal(user.Password, password)
+	error := user.Validate()
+	assert.Nil(error)
+
 }
 
 func Test_User_ValidateName(t *testing.T) {
 	assert := assert.New(t)
-	
-	_, username, email, password := makeUserMock()
-	_, error := domain.CreateUser("", username, email, password)
 
+	user := makeUserMock()
+	user.Name = ""
+	error := user.Validate()
 	assert.Equal(error.Error(), "Name is required")
 }
 
 func Test_User_ValidateUsername(t *testing.T) {
 	assert := assert.New(t)
-	
-	name, _, email, password := makeUserMock()
-	_, error := domain.CreateUser(name, "", email, password)
+
+	user := makeUserMock()
+	user.Username = ""
+
+	error := user.Validate()
 
 	assert.Equal(error.Error(), "Username is required")
 }
 
 func Test_User_ValidateEmail(t *testing.T) {
 	assert := assert.New(t)
-	
-	name, username, _, password := makeUserMock()
-	_, error := domain.CreateUser(name, username, "", password)
+
+	user := makeUserMock()
+	user.Email = ""
+
+	error := user.Validate()
 
 	assert.Equal(error.Error(), "Email is required")
 }
 
 func Test_User_ValidatePassword(t *testing.T) {
 	assert := assert.New(t)
-	
-	name, username, email, _ := makeUserMock()
-	_, error := domain.CreateUser(name, username, email, "")
+
+	user := makeUserMock()
+	user.Password = ""
+
+	error := user.Validate()
 
 	assert.Equal(error.Error(), "Password is required")
 }

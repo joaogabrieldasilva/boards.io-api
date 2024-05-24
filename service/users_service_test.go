@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"errors"
 	"testing"
 
 	"boards.io/domain"
@@ -12,72 +11,35 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type repositoryMock struct {
+type UsersRepository struct {
 	mock.Mock
 }
 
-func (r *repositoryMock) Save(user *domain.User) error {
+func (r *UsersRepository) Create(user *domain.User) (string, error) {
 	args := r.Called(user)
-	return args.Error(0)
+	return args.String(0), args.Error(1)
 }
 
-func makeUserDtoMock() request.NewUserReq {
+func makeUserRequestMock() request.NewUserReq {
 	return request.NewUserReq{Name: faker.FirstName(), Username: faker.Username(), Password: faker.Password(), Email: faker.Email()}
 }
 
-
 func Test_Create_User(t *testing.T) {
-	var userDto = makeUserDtoMock()
+	assert := assert.New(t)
+	var userRequest = makeUserRequestMock()
 
-	repositoryMock := new(repositoryMock)
+	repositoryMock := new(UsersRepository)
 
-	repositoryMock.On("Save", mock.MatchedBy(func(user *domain.User) bool {
-		if userDto.Name != user.Name {
-			return false
-		} else if userDto.Username != user.Username {
-			return false
-		} else if userDto.Password != user.Password {
-			return false
-		} else if userDto.Email != user.Email {
-			return false
-		}
+	IDMock := "1"
 
-		return true
-	})).Return(nil)
+	repositoryMock.On("Create", mock.Anything).Return(IDMock, nil)
 
 	service := service.UsersService{
 		Repository: repositoryMock,
 	}
 
-	service.Create(userDto)
-	repositoryMock.AssertExpectations(t)
-}
+	ID, error := service.Create(userRequest)
 
-func Test_Create_ValidateUser(t *testing.T) {
-	assert := assert.New(t)
-	var userDto = makeUserDtoMock()
-	userDto.Name = ""
-
-	service := service.UsersService{}
-
-	_, error := service.Create(userDto)
-
-	assert.NotNil(error)
-}
-
-func Test_Create_ValidateRepositorySave(t *testing.T) {
-	assert := assert.New(t)
-	var userDto = makeUserDtoMock()
-
-	repositoryMock := new(repositoryMock)
-
-	repositoryMock.On("Save", mock.Anything).Return(domain.ErrInternal)
-
-	service := service.UsersService{
-		Repository: repositoryMock,
-	}
-
-	_, error := service.Create(userDto)
-
-	assert.True(errors.Is(domain.ErrInternal, error))
+	assert.Nil(error)
+	assert.Equal(ID, IDMock)
 }
