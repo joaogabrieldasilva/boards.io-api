@@ -1,4 +1,4 @@
-package commonerrors
+package domain
 
 import "errors"
 

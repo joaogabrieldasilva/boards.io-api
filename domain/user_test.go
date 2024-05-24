@@ -1,10 +1,10 @@
-package user_test
+package domain_test
 
 import (
 	"fmt"
 	"testing"
 
-	"boards.io/internal/domain/user"
+	"boards.io/domain"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +26,7 @@ func Test_User_CreateUser(t *testing.T) {
 	
 	name, username, email, password := makeUserMock()
 
-	user, error := user.CreateUser(name,username, email, password)
+	user, error := domain.CreateUser(name,username, email, password)
 
 	assert.Equal(error, nil)
 	assert.NotNil(user.ID)
@@ -39,7 +39,7 @@ func Test_User_ValidateName(t *testing.T) {
 	assert := assert.New(t)
 	
 	_, username, email, password := makeUserMock()
-	_, error := user.CreateUser("", username, email, password)
+	_, error := domain.CreateUser("", username, email, password)
 
 	assert.Equal(error.Error(), "Name is required")
 }
@@ -48,7 +48,7 @@ func Test_User_ValidateUsername(t *testing.T) {
 	assert := assert.New(t)
 	
 	name, _, email, password := makeUserMock()
-	_, error := user.CreateUser(name, "", email, password)
+	_, error := domain.CreateUser(name, "", email, password)
 
 	assert.Equal(error.Error(), "Username is required")
 }
@@ -57,7 +57,7 @@ func Test_User_ValidateEmail(t *testing.T) {
 	assert := assert.New(t)
 	
 	name, username, _, password := makeUserMock()
-	_, error := user.CreateUser(name, username, "", password)
+	_, error := domain.CreateUser(name, username, "", password)
 
 	assert.Equal(error.Error(), "Email is required")
 }
@@ -66,7 +66,7 @@ func Test_User_ValidatePassword(t *testing.T) {
 	assert := assert.New(t)
 	
 	name, username, email, _ := makeUserMock()
-	_, error := user.CreateUser(name, username, email, "")
+	_, error := domain.CreateUser(name, username, email, "")
 
 	assert.Equal(error.Error(), "Password is required")
 }

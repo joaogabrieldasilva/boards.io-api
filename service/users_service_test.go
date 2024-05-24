@@ -1,12 +1,12 @@
-package user_test
+package service_test
 
 import (
 	"errors"
 	"testing"
 
-	"boards.io/internal/commonerrors"
-	"boards.io/internal/domain/user"
-	"boards.io/internal/dto"
+	"boards.io/domain"
+	"boards.io/service"
+	"boards.io/transport/request"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -16,13 +16,13 @@ type repositoryMock struct {
 	mock.Mock
 }
 
-func (r *repositoryMock) Save(user *user.User) error {
+func (r *repositoryMock) Save(user *domain.User) error {
 	args := r.Called(user)
 	return args.Error(0)
 }
 
-func makeUserDtoMock() dto.NewUserDto {
-	return dto.NewUserDto{Name: faker.FirstName(), Username: faker.Username(), Password: faker.Password(), Email: faker.Email()}
+func makeUserDtoMock() request.NewUserReq {
+	return request.NewUserReq{Name: faker.FirstName(), Username: faker.Username(), Password: faker.Password(), Email: faker.Email()}
 }
 
 
@@ -31,7 +31,7 @@ func Test_Create_User(t *testing.T) {
 
 	repositoryMock := new(repositoryMock)
 
-	repositoryMock.On("Save", mock.MatchedBy(func(user *user.User) bool {
+	repositoryMock.On("Save", mock.MatchedBy(func(user *domain.User) bool {
 		if userDto.Name != user.Name {
 			return false
 		} else if userDto.Username != user.Username {
@@ -45,7 +45,7 @@ func Test_Create_User(t *testing.T) {
 		return true
 	})).Return(nil)
 
-	service := user.Service{
+	service := service.UsersService{
 		Repository: repositoryMock,
 	}
 
@@ -58,7 +58,7 @@ func Test_Create_ValidateUser(t *testing.T) {
 	var userDto = makeUserDtoMock()
 	userDto.Name = ""
 
-	service := user.Service{}
+	service := service.UsersService{}
 
 	_, error := service.Create(userDto)
 
@@ -71,13 +71,13 @@ func Test_Create_ValidateRepositorySave(t *testing.T) {
 
 	repositoryMock := new(repositoryMock)
 
-	repositoryMock.On("Save", mock.Anything).Return(commonerrors.ErrInternal)
+	repositoryMock.On("Save", mock.Anything).Return(domain.ErrInternal)
 
-	service := user.Service{
+	service := service.UsersService{
 		Repository: repositoryMock,
 	}
 
 	_, error := service.Create(userDto)
 
-	assert.True(errors.Is(commonerrors.ErrInternal, error))
+	assert.True(errors.Is(domain.ErrInternal, error))
 }

@@ -1,9 +1,9 @@
-package user
+package domain
 
 import (
 	"errors"
 
-	"boards.io/internal/validation"
+	"boards.io/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/xid"
 )
@@ -33,7 +33,7 @@ func CreateUser(name string,  username string, email string,password string) (*U
 	if error := validate.Struct(newUser); error != nil {
 		error := error.(validator.ValidationErrors)[0]
 		
-		return nil, errors.New(validation.GetFieldErrorFromTag(error.Tag(), error.Field()))
+		return nil, errors.New(utils.GetFieldErrorFromTag(error.Tag(), error.Field()))
 	}
 
 	return newUser, nil

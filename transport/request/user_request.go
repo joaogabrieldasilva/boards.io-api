@@ -1,6 +1,6 @@
-package dto
+package request
 
-type NewUserDto struct {
+type NewUserReq struct {
 	Name string
 	Email string
 	Username string
